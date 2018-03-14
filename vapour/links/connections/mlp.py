@@ -3,6 +3,7 @@ from typing import List, Union
 
 import chainer.functions as F
 import chainer.links as L
+import numpy as np
 from chainer import Variable, Chain
 
 from vapour.utils import compute_hidden_size
@@ -10,7 +11,7 @@ from vapour.utils import compute_hidden_size
 
 class MLP(Chain):
     def __init__(self, nb_layers: int, in_size: int, out_size: int, hidden_size: Union[int, List[int]] = None,
-                 nolinear=F.tanh, nobias: bool = False, initialW=None, initial_bias=None) -> None:
+                 nonlinear=F.tanh, nobias: bool = False, initialW=None, initial_bias=None) -> None:
         super(MLP, self).__init__()
 
         if hidden_size is None:
@@ -24,7 +25,7 @@ class MLP(Chain):
         self.in_size = in_size
         self.hidden_size = hidden_size
         self.out_size = out_size
-        self.nolinear = nolinear
+        self.nonlinear = nonlinear
 
         with self.init_scope():
             if nb_layers == 1:
@@ -33,9 +34,18 @@ class MLP(Chain):
             else:
                 for ix, dim in enumerate(itertools.chain(hidden_layer_sizes, [out_size])):
                     setattr(self, f'fc{ix}', L.Linear(
-                        None, hidden_size, nobias, initialW, initial_bias))
+                        None, dim, nobias, initialW, initial_bias))
 
     def __call__(self, x: Variable) -> Variable:
         for ix in range(self.nb_layers - 1):
-            x = self.nolinear(getattr(self, f'fc{ix}')(x))
+            x = self.nonlinear(getattr(self, f'fc{ix}')(x))
         return getattr(self, f'fc{self.nb_layers - 1}')(x)
+
+
+if __name__ == '__main__':
+    mlp = MLP(1, 4, 5)
+
+    x = Variable(np.random.random((1, 4)).astype(np.float32))
+    y = mlp(x)
+
+    print(f'y :: {y.shape} => {y.data}')
