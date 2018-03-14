@@ -1,4 +1,3 @@
 # vapour
 
-chainer works
-
+Chainer crafts for NLP
