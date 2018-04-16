@@ -3,6 +3,10 @@ import chainer.links as L
 from chainer import Variable, Chain
 import numpy as np
 
+__all__ = [
+    'AffineTransform',
+]
+
 
 class AffineTransform(Chain):
     def __init__(self, *in_sizes: int, out_size: int,
